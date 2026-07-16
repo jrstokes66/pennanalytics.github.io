@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WSJ Institutional Forecast Rankings</title>
+<style>
+:root {
+  --bg:#f5f6f8; --surface:#ffffff; --border:#dde1e9; --txt1:#1a1d23;
+  --txt2:#4a5163; --txt3:#8b92a8; --accent:#1a56a0; --accent2:#e8f0fc;
+  --dot:#1a56a0; --win:#22883a; --se-fill:rgba(26,86,160,0.10);
+  --stripe:rgba(0,0,0,0.025); --tab-bg:#e8ecf4; --tab-act:#1a56a0;
+  --tab-txt:#4a5163; --htab-bg:#f0f3f9; --htab-act:#2e6bc4; --meta-bg:#f0f3f9;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:#12151c; --surface:#1e2330; --border:#2d3448; --txt1:#e8eaf0;
+    --txt2:#9aa3bc; --txt3:#5a6380; --accent:#4a8fd4; --accent2:#1a2a40;
+    --dot:#4a8fd4; --win:#3ab55a; --se-fill:rgba(74,143,212,0.13);
+    --stripe:rgba(255,255,255,0.03); --tab-bg:#252b3b; --tab-act:#2e6bc4;
+    --tab-txt:#9aa3bc; --htab-bg:#1e2330; --htab-act:#3a7fd4; --meta-bg:#1a2030;
+  }
+}
+:root[data-theme="light"] {
+  --bg:#f5f6f8; --surface:#ffffff; --border:#dde1e9; --txt1:#1a1d23;
+  --txt2:#4a5163; --txt3:#8b92a8; --accent:#1a56a0; --accent2:#e8f0fc;
+  --dot:#1a56a0; --win:#22883a; --se-fill:rgba(26,86,160,0.10);
+  --stripe:rgba(0,0,0,0.025); --tab-bg:#e8ecf4; --tab-act:#1a56a0;
+  --tab-txt:#4a5163; --htab-bg:#f0f3f9; --htab-act:#2e6bc4; --meta-bg:#f0f3f9;
+}
+:root[data-theme="dark"] {
+  --bg:#12151c; --surface:#1e2330; --border:#2d3448; --txt1:#e8eaf0;
+  --txt2:#9aa3bc; --txt3:#5a6380; --accent:#4a8fd4; --accent2:#1a2a40;
+  --dot:#4a8fd4; --win:#3ab55a; --se-fill:rgba(74,143,212,0.13);
+  --stripe:rgba(255,255,255,0.03); --tab-bg:#252b3b; --tab-act:#2e6bc4;
+  --tab-txt:#9aa3bc; --htab-bg:#1e2330; --htab-act:#3a7fd4; --meta-bg:#1a2030;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--txt1);min-height:100vh;padding:24px 16px 48px}
+.wrap{max-width:880px;margin:0 auto}
+header{margin-bottom:20px}
+h1{font-size:18px;font-weight:700;color:var(--txt1);letter-spacing:-0.3px}
+.subtitle{font-size:12px;color:var(--txt3);margin-top:4px;line-height:1.5}
+.var-tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+.var-tab{padding:6px 12px;border-radius:6px;background:var(--tab-bg);
+  color:var(--tab-txt);font-size:12px;font-weight:600;cursor:pointer;border:none;
+  transition:background .15s,color .15s;white-space:nowrap}
+.var-tab:hover{background:var(--accent2);color:var(--accent)}
+.var-tab.active{background:var(--tab-act);color:#fff}
+.horizon-tabs{display:flex;gap:6px;margin-bottom:10px}
+.htab{padding:5px 14px;border-radius:20px;background:var(--htab-bg);color:var(--txt2);
+  font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid transparent;
+  transition:all .15s;letter-spacing:.2px;text-transform:uppercase}
+.htab:hover{border-color:var(--accent);color:var(--accent)}
+.htab.active{background:var(--htab-act);color:#fff;border-color:var(--htab-act)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;margin-bottom:16px}
+.meta-bar{display:flex;align-items:center;gap:20px;padding:8px 16px;
+  background:var(--meta-bg);border-bottom:1px solid var(--border);
+  font-size:11px;color:var(--txt3)}
+.meta-bar strong{color:var(--txt2);font-weight:600}
+.chart-wrap{padding:12px 16px 16px;overflow-x:auto}
+#chart-svg{display:block;width:100%}
+.tooltip{position:fixed;background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:8px 10px;font-size:11px;color:var(--txt1);
+  pointer-events:none;opacity:0;transition:opacity .1s;z-index:999;
+  max-width:220px;box-shadow:0 4px 12px rgba(0,0,0,.12);line-height:1.5}
+.tooltip.show{opacity:1}
+.findings-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:14px 18px;margin-bottom:16px}
+.findings-title{font-size:11px;font-weight:700;color:var(--txt3);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.findings ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:7px}
+.findings li{display:block;position:relative;padding-left:14px;
+  font-size:12.5px;color:var(--txt2);line-height:1.6}
+.findings li::before{content:'';position:absolute;left:0;top:8px;
+  width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.findings b{color:var(--txt1);font-weight:600}
+.defs{font-size:11.5px;color:var(--txt3);line-height:1.7;
+  border-top:1px solid var(--border);padding-top:14px;margin-top:4px}
+.defs dt{font-weight:700;color:var(--txt2);display:inline}
+.defs dd{display:inline;margin:0}
+.defs p+p{margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>WSJ Economic Forecasting Survey &#8212; Institutional Forecast Rankings</h1>
+    <p class="subtitle">Top 10 institutions by forecast accuracy (RMSE), active participants in the July 2026 WSJ Economic Forecasting Survey only.<br>
+    Minimum N set to the highest threshold yielding at least 10 qualifying institutions per horizon.</p>
+  </header>
+
+  <div class="var-tabs" id="varTabs"></div>
+  <div class="horizon-tabs" id="horizonTabs"></div>
+
+  <div class="card">
+    <div class="meta-bar" id="metaBar"></div>
+    <div class="chart-wrap">
+      <svg id="chart-svg" viewBox="0 0 920 350" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <div class="findings-card">
+    <div class="findings-title">Key Findings</div>
+    <div class="findings" id="findings"></div>
+  </div>
+
+  <div class="defs">
+    <p><dt>Horizon:</dt> <dd>The forecast look-ahead window. <b>Near-term</b> covers forecasts 1&#8211;12 months ahead; <b>Intermediate</b> covers 13&#8211;24 months; <b>Long-term</b> covers 25+ months. Variables for which the WSJ survey does not solicit longer-horizon forecasts show fewer tabs.</dd></p>
+    <p><dt>Min N:</dt> <dd>The minimum number of matched forecast&#8211;actual pairs required for an institution to qualify. Set to the highest threshold that still yields at least 10 qualifying institutions among those active in the July 2026 survey. Higher N means greater confidence that rankings reflect consistent skill rather than a short lucky streak.</dd></p>
+    <p><dt>&#177;1 SE:</dt> <dd>One standard error around each institution&#8217;s RMSE estimate. Where error bars overlap, the rank difference is not statistically reliable and the institutions should be considered statistically indistinguishable.</dd></p>
+    <p><dt>RMSE:</dt> <dd>Root Mean Squared Error &#8212; the square root of the average squared forecast error. Lower is better. For rate and inflation variables, units are percentage points (pp); for Payrolls, units are thousands of jobs (k&nbsp;jobs).</dd></p>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const DATA = [
+  {
+    label:"10Y Tsry", unit:"pp",
+    findings:[
+      "<b>Near-term (N≥60):</b> Goldman Sachs leads at 0.70 pp RMSE, with Northern Trust close at 0.72 pp. The top 10 span only 0.30 pp — a highly competitive field at this horizon.",
+      "<b>Intermediate (N≥29):</b> Decision Economics edges ahead of Goldman Sachs (0.74 vs. 0.78 pp). Most near-term top performers reappear, with the top-two positions swapping.",
+      "<b>Long-term (N≥17):</b> Decision Economics dominates with 0.51 pp — roughly 0.32 pp ahead of runner-up TS Lombard — suggesting a durable structural advantage at extended horizons.",
+      "±1 SE bands overlap substantially among the top 5–6 institutions at every horizon; rank ordering within that cluster should be interpreted with caution."
+    ],
+    horizons:[
+      {label:"Near",best_n:60,active_total:69,rows:[
+        {name:"Goldman Sachs",rmse:0.6978,se:0.0627,n:62},
+        {name:"Northern Trust",rmse:0.7204,se:0.0647,n:62},
+        {name:"UCLA Anderson Forecast",rmse:0.7917,se:0.0717,n:61},
+        {name:"Mortgage Bankers Association",rmse:0.8657,se:0.0777,n:62},
+        {name:"Bank of America Securities",rmse:0.8945,se:0.0817,n:60},
+        {name:"Decision Economics",rmse:0.8999,se:0.0808,n:62},
+        {name:"Wells Fargo",rmse:0.9056,se:0.0827,n:60},
+        {name:"Econoclast",rmse:0.913,se:0.082,n:62},
+        {name:"Economic Analysis Associates",rmse:0.965,se:0.0881,n:60},
+        {name:"First Trust Advisors",rmse:0.9981,se:0.0911,n:60}
+      ]},
+      {label:"Interm.",best_n:29,active_total:61,rows:[
+        {name:"Decision Economics",rmse:0.7383,se:0.0953,n:30},
+        {name:"Goldman Sachs",rmse:0.7837,se:0.1012,n:30},
+        {name:"PNC Financial Services Group",rmse:0.8866,se:0.1164,n:29},
+        {name:"UCLA Anderson Forecast",rmse:0.9046,se:0.1168,n:30},
+        {name:"Northern Trust",rmse:0.958,se:0.1237,n:30},
+        {name:"S&P Global Market Intelligence",rmse:1.0306,se:0.1099,n:44},
+        {name:"Mortgage Bankers Association",rmse:1.1821,se:0.1526,n:30},
+        {name:"Econoclast",rmse:1.277,se:0.1649,n:30},
+        {name:"Economic Analysis Associates",rmse:1.3194,se:0.1732,n:29},
+        {name:"Societe Generale",rmse:1.3211,se:0.1706,n:30}
+      ]},
+      {label:"Long",best_n:17,active_total:46,rows:[
+        {name:"Decision Economics",rmse:0.5145,se:0.0882,n:17},
+        {name:"TS Lombard",rmse:0.8329,se:0.1428,n:17},
+        {name:"SS Economics",rmse:0.9135,se:0.1567,n:17},
+        {name:"Georgia State University",rmse:0.9849,se:0.1689,n:17},
+        {name:"Goldman Sachs",rmse:1.0398,se:0.1783,n:17},
+        {name:"Northern Trust",rmse:1.0964,se:0.188,n:17},
+        {name:"PNC Financial Services Group",rmse:1.1855,se:0.2033,n:17},
+        {name:"Ameriprise Financial",rmse:1.1867,se:0.2035,n:17},
+        {name:"S&P Global Market Intelligence",rmse:1.2219,se:0.1694,n:26},
+        {name:"Deloitte",rmse:1.233,se:0.2115,n:17}
+      ]}
+    ]
+  },
+  {
+    label:"CPI YoY", unit:"pp",
+    findings:[
+      "<b>Near-term (N≥128):</b> Fannie Mae leads at 1.43 pp RMSE, the only variable where Fannie Mae holds the near-term top spot. The top 10 cluster within 0.31 pp.",
+      "<b>Intermediate (N≥100):</b> Fannie Mae leads again at 1.95 pp. Mortgage Bankers Association, Econoclast, and Decision Economics appear consistently at both near and intermediate horizons.",
+      "<b>Long-term (N≥69):</b> Eaton tops the long-horizon ranking at 1.85 pp — its only appearance in the top 10 across any CPI horizon — while Mortgage Bankers Association remains in the top group.",
+      "CPI demands the highest minimum N thresholds of all variables (128 near, 100 intermediate), reflecting the broadest and longest-tenured forecaster pool in this dataset."
+    ],
+    horizons:[
+      {label:"Near",best_n:128,active_total:67,rows:[
+        {name:"Fannie Mae",rmse:1.43,se:0.0894,n:128},
+        {name:"Bank of America Securities",rmse:1.4673,se:0.0913,n:129},
+        {name:"UCLA Anderson Forecast",rmse:1.5809,se:0.098,n:130},
+        {name:"Northern Trust",rmse:1.5823,se:0.0981,n:130},
+        {name:"Mortgage Bankers Association",rmse:1.6097,se:0.0991,n:132},
+        {name:"Econoclast",rmse:1.627,se:0.1001,n:132},
+        {name:"Economic Analysis Associates",rmse:1.6963,se:0.1044,n:132},
+        {name:"Decision Economics",rmse:1.6998,se:0.1046,n:132},
+        {name:"First Trust Advisors",rmse:1.7405,se:0.1079,n:130},
+        {name:"Wells Fargo",rmse:1.7436,se:0.1077,n:131}
+      ]},
+      {label:"Interm.",best_n:100,active_total:64,rows:[
+        {name:"Fannie Mae",rmse:1.9492,se:0.1378,n:100},
+        {name:"Mortgage Bankers Association",rmse:2.044,se:0.1397,n:107},
+        {name:"Econoclast",rmse:2.1078,se:0.1441,n:107},
+        {name:"UCLA Anderson Forecast",rmse:2.1291,se:0.1469,n:105},
+        {name:"Economic Analysis Associates",rmse:2.1463,se:0.1467,n:107},
+        {name:"Decision Economics",rmse:2.1805,se:0.1491,n:107},
+        {name:"Northern Trust",rmse:2.2169,se:0.1537,n:104},
+        {name:"Deutsche Bank Securities",rmse:2.2232,se:0.1541,n:104},
+        {name:"Societe Generale",rmse:2.2737,se:0.1608,n:100},
+        {name:"National Association of Realtors",rmse:2.3495,se:0.1653,n:101}
+      ]},
+      {label:"Long",best_n:69,active_total:49,rows:[
+        {name:"Eaton",rmse:1.8538,se:0.1578,n:69},
+        {name:"Mortgage Bankers Association",rmse:2.3404,se:0.1828,n:82},
+        {name:"Decision Economics",rmse:2.3454,se:0.1831,n:82},
+        {name:"Economic Analysis Associates",rmse:2.3797,se:0.1858,n:82},
+        {name:"PNC Financial Services Group",rmse:2.4176,se:0.2043,n:70},
+        {name:"Econoclast",rmse:2.4231,se:0.1904,n:81},
+        {name:"Deutsche Bank Securities",rmse:2.4423,se:0.2035,n:72},
+        {name:"National Association of Realtors",rmse:2.4424,se:0.1943,n:79},
+        {name:"Societe Generale",rmse:2.445,se:0.1958,n:78},
+        {name:"Northern Trust",rmse:2.456,se:0.1966,n:78}
+      ]}
+    ]
+  },
+  {
+    label:"Core PCE", unit:"pp",
+    findings:[
+      "<b>Near-term (N≥19):</b> Robert Fry Economics leads at 0.87 pp, with California Lutheran University placing second — both smaller firms outperforming major financial institutions at this horizon.",
+      "<b>Intermediate (N≥15):</b> Fannie Mae moves to the top spot (1.25 pp), with Decision Economics and Econoclast in close pursuit. Near-term leaders drop in relative rank.",
+      "<b>Long-term (N≥13):</b> Decision Economics leads decisively at 0.50 pp — nearly 0.23 pp ahead of runner-up Robert Fry Economics — consistent with its long-horizon strength in related rate variables.",
+      "Core PCE has a shorter survey history than headline CPI, reflected in its lower threshold N values (max 19 near-term vs. 128 for CPI). Wider ±1 SE bands at all horizons follow from smaller N."
+    ],
+    horizons:[
+      {label:"Near",best_n:19,active_total:67,rows:[
+        {name:"Robert Fry Economics",rmse:0.8663,se:0.1405,n:19},
+        {name:"California Lutheran University",rmse:0.8883,se:0.1441,n:19},
+        {name:"Fannie Mae",rmse:0.9376,se:0.1521,n:19},
+        {name:"S&P Global Market Intelligence",rmse:0.9647,se:0.1267,n:29},
+        {name:"Ameriprise Financial",rmse:0.9974,se:0.1618,n:19},
+        {name:"BMO Capital Markets",rmse:1.0036,se:0.1628,n:19},
+        {name:"The Conference Board",rmse:1.0058,se:0.1632,n:19},
+        {name:"Econoclast",rmse:1.0066,se:0.1633,n:19},
+        {name:"Decision Economics",rmse:1.0585,se:0.1717,n:19},
+        {name:"Goldman Sachs",rmse:1.0857,se:0.1761,n:19}
+      ]},
+      {label:"Interm.",best_n:15,active_total:63,rows:[
+        {name:"Fannie Mae",rmse:1.251,se:0.2284,n:15},
+        {name:"Decision Economics",rmse:1.2707,se:0.232,n:15},
+        {name:"Econoclast",rmse:1.2755,se:0.2329,n:15},
+        {name:"Robert Fry Economics",rmse:1.2962,se:0.2367,n:15},
+        {name:"Eaton",rmse:1.3588,se:0.2481,n:15},
+        {name:"Ameriprise Financial",rmse:1.3883,se:0.2535,n:15},
+        {name:"BMO Capital Markets",rmse:1.3992,se:0.2555,n:15},
+        {name:"S&P Global Market Intelligence",rmse:1.4171,se:0.2187,n:21},
+        {name:"Scotiabank",rmse:1.434,se:0.2618,n:15},
+        {name:"Wells Fargo",rmse:1.4359,se:0.2622,n:15}
+      ]},
+      {label:"Long",best_n:13,active_total:48,rows:[
+        {name:"Decision Economics",rmse:0.501,se:0.0983,n:13},
+        {name:"Robert Fry Economics",rmse:0.7268,se:0.1425,n:13},
+        {name:"Goldman Sachs",rmse:0.806,se:0.1581,n:13},
+        {name:"Econoclast",rmse:0.8136,se:0.1596,n:13},
+        {name:"Eaton",rmse:0.8669,se:0.17,n:13},
+        {name:"Deutsche Bank Securities",rmse:0.9003,se:0.1766,n:13},
+        {name:"Mortgage Bankers Association",rmse:0.9173,se:0.1799,n:13},
+        {name:"Economic Analysis Associates",rmse:0.955,se:0.1873,n:13},
+        {name:"S&P Global Market Intelligence",rmse:0.9799,se:0.1789,n:15},
+        {name:"PNC Financial Services Group",rmse:0.9943,se:0.195,n:13}
+      ]}
+    ]
+  },
+  {
+    label:"Fed Funds", unit:"pp",
+    findings:[
+      "<b>Near-term (N≥60):</b> S&amp;P Global Market Intelligence leads at 0.78 pp, ahead of Goldman Sachs (0.83 pp). The top 10 span a tight 0.20 pp range.",
+      "<b>Intermediate (N≥29):</b> Decision Economics and Goldman Sachs are virtually tied at 1.24 pp. The spread from 1st to 10th nearly doubles compared to the near-term horizon.",
+      "<b>Long-term (N≥17):</b> Goldman Sachs leads at 1.11 pp with Decision Economics close behind at 1.17 pp. Both appear in the top 3 across all three Fed Funds horizons.",
+      "S&amp;P Global Market Intelligence holds the near-term top spot but falls to 4th at the intermediate horizon — an unusual reversal for a consistently ranked institution."
+    ],
+    horizons:[
+      {label:"Near",best_n:60,active_total:71,rows:[
+        {name:"S&P Global Market Intelligence",rmse:0.7769,se:0.0703,n:61},
+        {name:"Goldman Sachs",rmse:0.8302,se:0.0745,n:62},
+        {name:"Northern Trust",rmse:0.9107,se:0.0818,n:62},
+        {name:"Wells Fargo",rmse:0.9348,se:0.0853,n:60},
+        {name:"Decision Economics",rmse:0.9476,se:0.0851,n:62},
+        {name:"Bank of America Securities",rmse:0.9516,se:0.0869,n:60},
+        {name:"Mortgage Bankers Association",rmse:0.9651,se:0.0867,n:62},
+        {name:"Deutsche Bank Securities",rmse:0.9656,se:0.0881,n:60},
+        {name:"Econoclast",rmse:0.972,se:0.0873,n:62},
+        {name:"UCLA Anderson Forecast",rmse:0.9744,se:0.0882,n:61}
+      ]},
+      {label:"Interm.",best_n:29,active_total:66,rows:[
+        {name:"Decision Economics",rmse:1.2383,se:0.1599,n:30},
+        {name:"Goldman Sachs",rmse:1.2417,se:0.1603,n:30},
+        {name:"UCLA Anderson Forecast",rmse:1.3644,se:0.1761,n:30},
+        {name:"S&P Global Market Intelligence",rmse:1.3962,se:0.1456,n:46},
+        {name:"Mortgage Bankers Association",rmse:1.4339,se:0.1851,n:30},
+        {name:"Bank of America Securities",rmse:1.4355,se:0.1885,n:29},
+        {name:"Northern Trust",rmse:1.5193,se:0.1961,n:30},
+        {name:"Econoclast",rmse:1.5666,se:0.2022,n:30},
+        {name:"Societe Generale",rmse:1.6215,se:0.2093,n:30},
+        {name:"PNC Financial Services Group",rmse:1.6301,se:0.214,n:29}
+      ]},
+      {label:"Long",best_n:17,active_total:49,rows:[
+        {name:"Goldman Sachs",rmse:1.1131,se:0.1909,n:17},
+        {name:"Decision Economics",rmse:1.1678,se:0.2003,n:17},
+        {name:"SS Economics",rmse:1.3243,se:0.2271,n:17},
+        {name:"TS Lombard",rmse:1.379,se:0.2365,n:17},
+        {name:"S&P Global Market Intelligence",rmse:1.4552,se:0.1945,n:28},
+        {name:"Ameriprise Financial",rmse:1.5612,se:0.2678,n:17},
+        {name:"Deloitte",rmse:1.5881,se:0.2724,n:17},
+        {name:"PNC Financial Services Group",rmse:1.6137,se:0.2768,n:17},
+        {name:"Econoclast",rmse:1.6247,se:0.2786,n:17},
+        {name:"Mortgage Bankers Association",rmse:1.6498,se:0.2829,n:17}
+      ]}
+    ]
+  },
+  {
+    label:"GDP 4Q4Q", unit:"pp",
+    findings:[
+      "<b>Near-term (N≥19):</b> S&amp;P Global Market Intelligence leads at 1.12 pp — well ahead of Decision Economics in 2nd at 1.70 pp. The gap between 1st and 2nd is wider here than in any other variable at the near-term horizon.",
+      "<b>Intermediate (N≥11):</b> Decision Economics dominates at 0.46 pp, roughly 60% below runner-up S&amp;P Global (0.74 pp). This is the most pronounced single-institution advantage observed across any variable and horizon in this dataset.",
+      "The near-to-intermediate rank reversal — S&amp;P Global leading near-term, Decision Economics dominating intermediate — is the sharpest horizon-dependent shift among all variables.",
+      "GDP 4Q4Q is not solicited beyond the intermediate horizon in the WSJ survey, so no long-term tab is available."
+    ],
+    horizons:[
+      {label:"Near",best_n:19,active_total:65,rows:[
+        {name:"S&P Global Market Intelligence",rmse:1.1196,se:0.177,n:20},
+        {name:"Decision Economics",rmse:1.7006,se:0.2759,n:19},
+        {name:"Goldman Sachs",rmse:1.8011,se:0.2922,n:19},
+        {name:"Northern Trust",rmse:1.8603,se:0.3018,n:19},
+        {name:"UBS Securities",rmse:2.0716,se:0.3361,n:19},
+        {name:"Economic Analysis Associates",rmse:2.1134,se:0.3428,n:19},
+        {name:"UCLA Anderson Forecast",rmse:2.1366,se:0.3466,n:19},
+        {name:"Mortgage Bankers Association",rmse:2.1796,se:0.3536,n:19},
+        {name:"Econoclast",rmse:2.2101,se:0.3585,n:19},
+        {name:"First Trust Advisors",rmse:2.6487,se:0.4297,n:19}
+      ]},
+      {label:"Interm.",best_n:11,active_total:62,rows:[
+        {name:"Decision Economics",rmse:0.4645,se:0.099,n:11},
+        {name:"S&P Global Market Intelligence",rmse:0.741,se:0.1453,n:13},
+        {name:"Northern Trust",rmse:0.7711,se:0.1644,n:11},
+        {name:"Goldman Sachs",rmse:0.7782,se:0.1659,n:11},
+        {name:"Morgan Stanley",rmse:0.9231,se:0.1968,n:11},
+        {name:"Mortgage Bankers Association",rmse:0.9509,se:0.2027,n:11},
+        {name:"The Conference Board",rmse:0.958,se:0.2042,n:11},
+        {name:"UCLA Anderson Forecast",rmse:1.0981,se:0.2341,n:11},
+        {name:"Deutsche Bank Securities",rmse:1.1364,se:0.2423,n:11},
+        {name:"Wells Fargo",rmse:1.1498,se:0.2451,n:11}
+      ]}
+    ]
+  },
+  {
+    label:"GDP QoQ", unit:"pp",
+    findings:[
+      "<b>Near-term only (N≥196):</b> Econoclast leads at 5.32 pp RMSE, with the top 10 spanning a narrow 0.68 pp range. The large absolute RMSE values reflect the inherent volatility of quarterly annualized GDP growth, not poor forecasting per se.",
+      "The near-term N threshold (196) is among the highest in the dataset, reflecting that nearly all active institutions have submitted GDP QoQ forecasts across many survey rounds.",
+      "The intermediate horizon is not shown: the July 2026 survey does not solicit GDP QoQ forecasts beyond the near-term window, leaving insufficient history for ranking at that horizon.",
+      "Despite leading the pack, Econoclast’s ±1 SE band overlaps substantially with Deutsche Bank (2nd) through Wells Fargo (5th); the top five are statistically indistinguishable."
+    ],
+    horizons:[
+      {label:"Near",best_n:196,active_total:66,rows:[
+        {name:"Econoclast",rmse:5.3248,se:0.2643,n:203},
+        {name:"Deutsche Bank Securities",rmse:5.4097,se:0.2732,n:196},
+        {name:"Northern Trust",rmse:5.4427,se:0.2742,n:197},
+        {name:"Fannie Mae",rmse:5.4651,se:0.2746,n:198},
+        {name:"Wells Fargo",rmse:5.59,se:0.2781,n:202},
+        {name:"Economic Analysis Associates",rmse:5.6116,se:0.2806,n:200},
+        {name:"Mortgage Bankers Association",rmse:5.6616,se:0.281,n:203},
+        {name:"First Trust Advisors",rmse:5.7263,se:0.2863,n:200},
+        {name:"Decision Economics",rmse:5.8936,se:0.2925,n:203},
+        {name:"UCLA Anderson Forecast",rmse:6.0014,se:0.3016,n:198}
+      ]}
+    ]
+  },
+  {
+    label:"PCE", unit:"pp",
+    findings:[
+      "<b>Near-term (N≥22):</b> Wells Fargo leads narrowly at 1.13 pp, with The Conference Board and Ameriprise Financial within 0.04 pp. The top 10 span only 0.21 pp — the tightest near-term spread in this dataset.",
+      "<b>Intermediate (N≥15):</b> Econoclast moves to the top spot (1.50 pp), with Decision Economics and Robert Fry Economics close behind. Several institutions shift substantially in relative rank from near to intermediate.",
+      "<b>Long-term (N≥13):</b> Econoclast leads decisively at 0.43 pp — nearly 0.10 pp ahead of Goldman Sachs — Econoclast’s strongest relative margin across all variables and horizons.",
+      "PCE long-term RMSE values (0.43–0.75 pp) are among the lowest across all variables at comparable horizons, suggesting that spending-based inflation forecasts become more tractable at extended horizons."
+    ],
+    horizons:[
+      {label:"Near",best_n:22,active_total:65,rows:[
+        {name:"Wells Fargo",rmse:1.1296,se:0.1703,n:22},
+        {name:"The Conference Board",rmse:1.1564,se:0.1743,n:22},
+        {name:"Ameriprise Financial",rmse:1.1676,se:0.1722,n:23},
+        {name:"First Trust Advisors",rmse:1.1947,se:0.1801,n:22},
+        {name:"Goldman Sachs",rmse:1.2178,se:0.1796,n:23},
+        {name:"Northern Trust",rmse:1.2511,se:0.1845,n:23},
+        {name:"S&P Global Market Intelligence",rmse:1.2559,se:0.1742,n:26},
+        {name:"Decision Economics",rmse:1.3003,se:0.1917,n:23},
+        {name:"Econoclast",rmse:1.314,se:0.1937,n:23},
+        {name:"Deutsche Bank Securities",rmse:1.3354,se:0.2013,n:22}
+      ]},
+      {label:"Interm.",best_n:15,active_total:61,rows:[
+        {name:"Econoclast",rmse:1.4999,se:0.2738,n:15},
+        {name:"Decision Economics",rmse:1.5617,se:0.2851,n:15},
+        {name:"Robert Fry Economics",rmse:1.5784,se:0.2882,n:15},
+        {name:"S&P Global Market Intelligence",rmse:1.6074,se:0.248,n:21},
+        {name:"Scotiabank",rmse:1.6421,se:0.2998,n:15},
+        {name:"Eaton",rmse:1.6636,se:0.3037,n:15},
+        {name:"Ameriprise Financial",rmse:1.6741,se:0.3056,n:15},
+        {name:"Fannie Mae",rmse:1.6832,se:0.3073,n:15},
+        {name:"EconForecaster",rmse:1.6867,se:0.3079,n:15},
+        {name:"Wells Fargo",rmse:1.7618,se:0.3217,n:15}
+      ]},
+      {label:"Long",best_n:13,active_total:45,rows:[
+        {name:"Econoclast",rmse:0.4287,se:0.0841,n:13},
+        {name:"Goldman Sachs",rmse:0.5325,se:0.1044,n:13},
+        {name:"Robert Fry Economics",rmse:0.5686,se:0.1115,n:13},
+        {name:"Decision Economics",rmse:0.6094,se:0.1195,n:13},
+        {name:"Eaton",rmse:0.6329,se:0.1241,n:13},
+        {name:"Ameriprise Financial",rmse:0.6705,se:0.1315,n:13},
+        {name:"Deutsche Bank Securities",rmse:0.7253,se:0.1422,n:13},
+        {name:"S&P Global Market Intelligence",rmse:0.7345,se:0.1341,n:15},
+        {name:"Mortgage Bankers Association",rmse:0.7485,se:0.1468,n:13},
+        {name:"Economic Analysis Associates",rmse:0.7509,se:0.1473,n:13}
+      ]}
+    ]
+  },
+  {
+    label:"Payrolls", unit:"k jobs",
+    findings:[
+      "<b>Near-term only (N≥7):</b> AC Cutts &amp; Associates leads with an RMSE of approximately 71,600 jobs — meaning its average monthly payroll forecast missed the actual figure by roughly 72,000 jobs.",
+      "The top 10 span approximately 44,000 jobs in RMSE, indicating considerably wider dispersion in forecasting skill than is typical for the percentage-based variables.",
+      "With a maximum of 7 qualifying observations per institution, Payrolls has the shortest scoring history in this dataset; the threshold N of 7 uses the full available history.",
+      "Monthly payroll changes are inherently volatile and subject to large subsequent revisions, which contributes to elevated RMSE values across all institutions regardless of forecasting approach."
+    ],
+    horizons:[
+      {label:"Near",best_n:7,active_total:39,rows:[
+        {name:"AC Cutts & Associates",rmse:71625.285,se:19142.663,n:7},
+        {name:"PNC Financial Services Group",rmse:86109.441,se:23013.716,n:7},
+        {name:"Deutsche Bank Securities",rmse:89505.658,se:23921.393,n:7},
+        {name:"Nomura Securities International",rmse:98401.493,se:26298.905,n:7},
+        {name:"Oxford Economics",rmse:101321.859,se:27079.406,n:7},
+        {name:"Mortgage Bankers Association",rmse:109059.089,se:29147.267,n:7},
+        {name:"Daiwa Capital Markets America",rmse:110453.975,se:29520.066,n:7},
+        {name:"TS Lombard",rmse:112132.477,se:29968.665,n:7},
+        {name:"Decision Economics",rmse:113670.163,se:30379.629,n:7},
+        {name:"Econoclast",rmse:115415.349,se:30846.050,n:7}
+      ]}
+    ]
+  },
+  {
+    label:"Unemp", unit:"pp",
+    findings:[
+      "<b>Near-term (N≥132):</b> Mortgage Bankers Association leads at 1.28 pp. With 71 active institutions, Unemployment has the deepest near-term participation pool of any variable.",
+      "<b>Intermediate (N≥102):</b> Mortgage Bankers Association leads again at 1.73 pp — one of only a handful of institutions to hold the top spot at two consecutive horizons within the same variable.",
+      "<b>Long-term (N≥76):</b> Deutsche Bank Securities moves to the top at 1.49 pp, while Mortgage Bankers Association drops out of the top 10 entirely at this horizon.",
+      "The long-term RMSE floor (1.49 pp) is notably lower than the near-term floor (1.28 pp), consistent with unemployment forecasts converging toward a structural level that is easier to approximate than near-term cyclical movements."
+    ],
+    horizons:[
+      {label:"Near",best_n:132,active_total:71,rows:[
+        {name:"Mortgage Bankers Association",rmse:1.2781,se:0.0775,n:136},
+        {name:"Fannie Mae",rmse:1.2806,se:0.0788,n:132},
+        {name:"Deutsche Bank Securities",rmse:1.3138,se:0.0809,n:132},
+        {name:"Econoclast",rmse:1.3505,se:0.0819,n:136},
+        {name:"Northern Trust",rmse:1.3729,se:0.0839,n:134},
+        {name:"Wells Fargo",rmse:1.3948,se:0.0852,n:134},
+        {name:"Bank of America Securities",rmse:1.4193,se:0.0873,n:132},
+        {name:"First Trust Advisors",rmse:1.4519,se:0.0887,n:134},
+        {name:"Economic Analysis Associates",rmse:1.46,se:0.0885,n:136},
+        {name:"UCLA Anderson Forecast",rmse:1.4625,se:0.0897,n:133}
+      ]},
+      {label:"Interm.",best_n:102,active_total:65,rows:[
+        {name:"Mortgage Bankers Association",rmse:1.7338,se:0.1164,n:111},
+        {name:"Deutsche Bank Securities",rmse:1.7644,se:0.1206,n:107},
+        {name:"Northern Trust",rmse:1.8077,se:0.123,n:108},
+        {name:"Econoclast",rmse:1.8097,se:0.1215,n:111},
+        {name:"National Association of Realtors",rmse:1.8437,se:0.1291,n:102},
+        {name:"Societe Generale",rmse:1.8522,se:0.1284,n:104},
+        {name:"Fannie Mae",rmse:1.8547,se:0.1299,n:102},
+        {name:"Economic Analysis Associates",rmse:1.8755,se:0.1259,n:111},
+        {name:"UCLA Anderson Forecast",rmse:1.8842,se:0.1276,n:109},
+        {name:"Decision Economics",rmse:1.9955,se:0.1339,n:111}
+      ]},
+      {label:"Long",best_n:76,active_total:52,rows:[
+        {name:"Deutsche Bank Securities",rmse:1.4918,se:0.1187,n:79},
+        {name:"Mortgage Bankers Association",rmse:1.6511,se:0.1224,n:91},
+        {name:"Eaton",rmse:1.7492,se:0.1419,n:76},
+        {name:"Northern Trust",rmse:1.7581,se:0.1333,n:87},
+        {name:"PNC Financial Services Group",rmse:1.7679,se:0.1406,n:79},
+        {name:"Econoclast",rmse:1.7908,se:0.1327,n:91},
+        {name:"National Association of Realtors",rmse:1.8286,se:0.1378,n:88},
+        {name:"Societe Generale",rmse:1.8527,se:0.1405,n:87},
+        {name:"Economic Analysis Associates",rmse:1.8879,se:0.1399,n:91},
+        {name:"Goldman Sachs",rmse:1.9488,se:0.1581,n:76}
+      ]}
+    ]
+  }
+];
+
+let curVar=0, curHorizon=0;
+
+const SVG_W=920, NAME_COL=232, VAL_COL=62, SE_COL=62, PLOT_W=SVG_W-NAME_COL-VAL_COL-SE_COL;
+const ROW_H=28, ROWS=10, AXIS_H=30, PAD_TOP=6;
+
+function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+
+function fmtRmse(v,unit){
+  if(unit==='k jobs') return (v/1000).toFixed(3);
+  return v.toFixed(3);
+}
+function fmtAxis(v,unit){
+  if(unit==='k jobs') return (v/1000).toFixed(1)+'k';
+  return v.toFixed(3);
+}
+
+function renderChart(){
+  const vd=DATA[curVar], hd=vd.horizons[curHorizon], unit=vd.unit, rows=hd.rows;
+  const vals=rows.map(r=>r.rmse), errs=rows.map(r=>r.se);
+  const xMin=Math.min(...vals.map((v,i)=>v-errs[i]));
+  const xMax=Math.max(...vals.map((v,i)=>v+errs[i]));
+  const pad=(xMax-xMin)*0.12;
+  const x0=Math.max(0,xMin-pad), x1=xMax+pad;
+  const xScale=v=>NAME_COL+((v-x0)/(x1-x0))*PLOT_W;
+  const HDR_H=18;
+  const totalH=PAD_TOP+HDR_H+ROWS*ROW_H+AXIS_H;
+
+  const cTxt2=cssVar('--txt2'), cTxt3=cssVar('--txt3'), cBorder=cssVar('--border');
+  const cStripe=cssVar('--stripe'), cDot=cssVar('--dot'), cWin=cssVar('--win');
+  const cSeFill=cssVar('--se-fill'), cSurf=cssVar('--surface');
+
+  let out='';
+
+  // Column headers
+  out+=`<text x="${NAME_COL+PLOT_W+VAL_COL/2}" y="${HDR_H-3}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${cTxt3}" font-family="sans-serif" letter-spacing="0.3">RMSE</text>`;
+  out+=`<text x="${NAME_COL+PLOT_W+VAL_COL+SE_COL/2}" y="${HDR_H-3}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${cTxt3}" font-family="sans-serif" letter-spacing="0.3">±1 SE</text>`;
+  out+=`<line x1="${NAME_COL+PLOT_W}" y1="${HDR_H}" x2="${SVG_W}" y2="${HDR_H}" stroke="${cBorder}" stroke-width="1"/>`;
+
+  const chartTop = PAD_TOP + HDR_H;
+
+  for(let i=0;i<ROWS;i++){
+    if(i%2===1) out+=`<rect x="0" y="${chartTop+i*ROW_H}" width="${SVG_W}" height="${ROW_H}" fill="${cStripe}"/>`;
+  }
+
+  const nTicks=5;
+  for(let t=0;t<=nTicks;t++){
+    const v=x0+(t/nTicks)*(x1-x0), x=xScale(v);
+    out+=`<line x1="${x}" y1="${chartTop}" x2="${x}" y2="${chartTop+ROWS*ROW_H}" stroke="${cBorder}" stroke-width="1" stroke-dasharray="3,3"/>`;
+    out+=`<text x="${x}" y="${chartTop+ROWS*ROW_H+18}" text-anchor="middle" font-size="10" fill="${cTxt3}" font-family="sans-serif">${fmtAxis(v,unit)}</text>`;
+  }
+  out+=`<line x1="${NAME_COL}" y1="${chartTop+ROWS*ROW_H}" x2="${NAME_COL+PLOT_W}" y2="${chartTop+ROWS*ROW_H}" stroke="${cBorder}" stroke-width="1"/>`;
+
+  rows.forEach((r,i)=>{
+    const cy=chartTop+i*ROW_H+ROW_H/2, cx=xScale(r.rmse);
+    const ex0=xScale(r.rmse-r.se), ex1=xScale(r.rmse+r.se);
+    const isTop=i===0;
+    const nc=isTop?cWin:cTxt2, dc=isTop?cWin:cDot;
+    out+=`<text x="16" y="${cy+4}" text-anchor="middle" font-size="10" fill="${cTxt3}" font-family="sans-serif" font-weight="600">${i+1}</text>`;
+    const esc=r.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    out+=`<text x="28" y="${cy+4}" text-anchor="start" font-size="11" fill="${nc}" font-family="sans-serif" font-weight="${isTop?700:400}">${esc}</text>`;
+    out+=`<rect x="${ex0}" y="${cy-7}" width="${ex1-ex0}" height="14" fill="${cSeFill}" rx="2"/>`;
+    out+=`<line x1="${NAME_COL+4}" y1="${cy}" x2="${cx}" y2="${cy}" stroke="${cBorder}" stroke-width="1"/>`;
+    out+=`<line x1="${ex0}" y1="${cy-5}" x2="${ex0}" y2="${cy+5}" stroke="${dc}" stroke-width="1" opacity="0.5"/>`;
+    out+=`<line x1="${ex1}" y1="${cy-5}" x2="${ex1}" y2="${cy+5}" stroke="${dc}" stroke-width="1" opacity="0.5"/>`;
+    out+=`<circle class="dot-mark" cx="${cx}" cy="${cy}" r="5" fill="${dc}" stroke="${cSurf}" stroke-width="1.5" data-name="${esc}" data-rmse="${r.rmse}" data-se="${r.se}" data-n="${r.n}" data-unit="${unit}"/>`;
+    out+=`<text x="${NAME_COL+PLOT_W+VAL_COL/2}" y="${cy+4}" text-anchor="middle" font-size="10.5" fill="${nc}" font-family="sans-serif" font-weight="${isTop?700:400}" font-variant-numeric="tabular-nums">${fmtRmse(r.rmse,unit)}</text>`;
+    out+=`<text x="${NAME_COL+PLOT_W+VAL_COL+SE_COL/2}" y="${cy+4}" text-anchor="middle" font-size="10.5" fill="${cTxt3}" font-family="sans-serif" font-variant-numeric="tabular-nums">${fmtRmse(r.se,unit)}</text>`;
+  });
+
+  out+=`<text x="${NAME_COL+PLOT_W/2}" y="${chartTop+ROWS*ROW_H+AXIS_H-2}" text-anchor="middle" font-size="9.5" fill="${cTxt3}" font-family="sans-serif">RMSE (${unit})</text>`;
+
+  const svgEl=document.getElementById('chart-svg');
+  svgEl.setAttribute('viewBox',`0 0 ${SVG_W} ${totalH}`);
+  svgEl.innerHTML=out;
+
+  const tip=document.getElementById('tooltip');
+  svgEl.querySelectorAll('.dot-mark').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{
+      const u=el.dataset.unit, rv=parseFloat(el.dataset.rmse), sv=parseFloat(el.dataset.se);
+      tip.innerHTML=`<strong>${el.dataset.name}</strong><br>RMSE: ${fmtRmse(rv,u)}&nbsp;${u}<br>±1 SE: ${fmtRmse(sv,u)}&nbsp;${u}<br>N: ${el.dataset.n}`;
+      tip.classList.add('show');
+    });
+    el.addEventListener('mousemove',e=>{tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-10)+'px'});
+    el.addEventListener('mouseleave',()=>tip.classList.remove('show'));
+  });
+}
+
+function renderMeta(){
+  const hd=DATA[curVar].horizons[curHorizon];
+  document.getElementById('metaBar').innerHTML=
+    `<span>Min N: <strong>${hd.best_n}</strong></span>`+
+    `<span>Active institutions (Jul 2026): <strong>${hd.active_total}</strong></span>`+
+    `<span>Ranked: <strong>top 10</strong></span>`;
+}
+
+function renderFindings(){
+  const f=DATA[curVar].findings;
+  document.getElementById('findings').innerHTML='<ul>'+f.map(s=>`<li>${s}</li>`).join('')+'</ul>';
+}
+
+function renderHorizonTabs(){
+  const hs=DATA[curVar].horizons;
+  const c=document.getElementById('horizonTabs');
+  c.innerHTML=hs.map((h,i)=>`<button class="htab${i===curHorizon?' active':''}" data-hidx="${i}">${h.label}</button>`).join('');
+  c.querySelectorAll('.htab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      curHorizon=parseInt(btn.dataset.hidx);
+      c.querySelectorAll('.htab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderChart(); renderMeta();
+    });
+  });
+}
+
+function renderVarTabs(){
+  const c=document.getElementById('varTabs');
+  c.innerHTML=DATA.map((v,i)=>`<button class="var-tab${i===curVar?' active':''}" data-vidx="${i}">${v.label}</button>`).join('');
+  c.querySelectorAll('.var-tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      curVar=parseInt(btn.dataset.vidx); curHorizon=0;
+      c.querySelectorAll('.var-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderHorizonTabs(); renderChart(); renderMeta(); renderFindings();
+    });
+  });
+}
+
+renderVarTabs(); renderHorizonTabs(); renderChart(); renderMeta(); renderFindings();
+
+new MutationObserver(renderChart).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',renderChart);
+</script>
+</body>
+</html>
