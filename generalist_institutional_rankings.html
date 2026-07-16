@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WSJ Institutional Generalist Rankings</title>
+<style>
+:root {
+  --bg:#f5f6f8; --surface:#ffffff; --border:#dde1e9; --txt1:#1a1d23;
+  --txt2:#4a5163; --txt3:#8b92a8; --accent:#1a56a0; --accent2:#e8f0fc;
+  --tab-bg:#e8ecf4; --tab-act:#1a56a0; --tab-txt:#4a5163;
+  --meta-bg:#f0f3f9; --stripe:rgba(0,0,0,0.025);
+  --bar-bg:#e4e8f2; --bar-fill:#1a56a0;
+  --g4:#1a7a3a; --g3:#4aaa60; --g2:#f0c040; --g1:#e07050; --g0:#c8ccd8;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#12151c; --surface:#1e2330; --border:#2d3448; --txt1:#e8eaf0;
+  --txt2:#9aa3bc; --txt3:#5a6380; --accent:#4a8fd4; --accent2:#1a2a40;
+  --tab-bg:#252b3b; --tab-act:#2e6bc4; --tab-txt:#9aa3bc;
+  --meta-bg:#1a2030; --stripe:rgba(255,255,255,0.03);
+  --bar-bg:#2a3248; --bar-fill:#4a8fd4;
+  --g4:#28a050; --g3:#5aba78; --g2:#c8a020; --g1:#c05838; --g0:#3a3f54;
+}}
+:root[data-theme="light"]{
+  --bg:#f5f6f8; --surface:#ffffff; --border:#dde1e9; --txt1:#1a1d23;
+  --txt2:#4a5163; --txt3:#8b92a8; --accent:#1a56a0; --accent2:#e8f0fc;
+  --tab-bg:#e8ecf4; --tab-act:#1a56a0; --tab-txt:#4a5163;
+  --meta-bg:#f0f3f9; --stripe:rgba(0,0,0,0.025);
+  --bar-bg:#e4e8f2; --bar-fill:#1a56a0;
+  --g4:#1a7a3a; --g3:#4aaa60; --g2:#f0c040; --g1:#e07050; --g0:#c8ccd8;
+}
+:root[data-theme="dark"]{
+  --bg:#12151c; --surface:#1e2330; --border:#2d3448; --txt1:#e8eaf0;
+  --txt2:#9aa3bc; --txt3:#5a6380; --accent:#4a8fd4; --accent2:#1a2a40;
+  --tab-bg:#252b3b; --tab-act:#2e6bc4; --tab-txt:#9aa3bc;
+  --meta-bg:#1a2030; --stripe:rgba(255,255,255,0.03);
+  --bar-bg:#2a3248; --bar-fill:#4a8fd4;
+  --g4:#28a050; --g3:#5aba78; --g2:#c8a020; --g1:#c05838; --g0:#3a3f54;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--txt1);min-height:100vh;padding:24px 16px 48px}
+.wrap{max-width:980px;margin:0 auto}
+header{margin-bottom:20px}
+h1{font-size:18px;font-weight:700;color:var(--txt1);letter-spacing:-0.3px}
+.subtitle{font-size:12px;color:var(--txt3);margin-top:4px;line-height:1.5}
+.tier-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.ttab{padding:6px 18px;border-radius:20px;background:var(--tab-bg);
+  color:var(--tab-txt);font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid transparent;
+  transition:all .15s;letter-spacing:.2px}
+.ttab:hover{border-color:var(--accent);color:var(--accent)}
+.ttab.active{background:var(--tab-act);color:#fff;border-color:var(--tab-act)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;margin-bottom:16px}
+.meta-bar{display:flex;align-items:center;gap:20px;padding:8px 16px;
+  background:var(--meta-bg);border-bottom:1px solid var(--border);
+  font-size:11px;color:var(--txt3)}
+.meta-bar strong{color:var(--txt2);font-weight:600}
+.tbl-wrap{overflow-x:auto;padding:0}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+thead th{padding:6px 8px;background:var(--meta-bg);color:var(--txt2);
+  font-weight:700;font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);white-space:nowrap;text-align:center}
+thead th.left{text-align:left}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:last-child{border-bottom:none}
+tbody tr:nth-child(even){background:var(--stripe)}
+td{padding:7px 8px;color:var(--txt1);vertical-align:middle}
+td.rank{color:var(--txt3);font-size:11px;font-weight:600;text-align:center;width:28px}
+td.name{font-weight:600;font-size:12px;min-width:200px;padding-left:12px}
+td.vc{text-align:center;font-size:11px;color:var(--txt3)}
+td.score{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;
+  color:var(--accent);font-size:12px;width:46px;padding-right:4px}
+td.bar-cell{width:130px;padding:0 8px}
+.bar-track{height:10px;border-radius:5px;background:var(--bar-bg);overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;background:var(--bar-fill);transition:width .3s}
+td.var-cell{width:54px;text-align:center;padding:4px 3px;cursor:default}
+.vcell{border-radius:5px;padding:3px 4px;font-size:10px;font-weight:700;
+  font-variant-numeric:tabular-nums;min-width:46px;display:inline-block;
+  line-height:1.4;color:#fff}
+.vcell.g4{background:var(--g4)}
+.vcell.g3{background:var(--g3);color:#fff}
+.vcell.g2{background:var(--g2);color:#333}
+.vcell.g1{background:var(--g1)}
+.vcell.g0{background:var(--g0);color:var(--txt3);font-weight:400}
+.vcell.miss{background:transparent;color:var(--txt3);font-weight:400;font-size:10px}
+.var-hdr{font-size:9.5px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.findings-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:14px 18px;margin-bottom:16px}
+.findings-title{font-size:11px;font-weight:700;color:var(--txt3);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.findings ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:7px}
+.findings li{position:relative;padding-left:14px;font-size:12.5px;color:var(--txt2);line-height:1.6}
+.findings li::before{content:'';position:absolute;left:0;top:8px;
+  width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.findings b{color:var(--txt1);font-weight:600}
+.defs{font-size:11.5px;color:var(--txt3);line-height:1.7;
+  border-top:1px solid var(--border);padding-top:14px;margin-top:4px}
+.defs dt{font-weight:700;color:var(--txt2);display:inline}
+.defs dd{display:inline;margin:0}
+.defs p+p{margin-top:6px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;padding:10px 16px;
+  border-top:1px solid var(--border);background:var(--meta-bg);font-size:10px;color:var(--txt3)}
+.leg-item{display:flex;align-items:center;gap:5px}
+.leg-swatch{width:12px;height:12px;border-radius:3px}
+.tooltip{position:fixed;background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:8px 10px;font-size:11px;color:var(--txt1);
+  pointer-events:none;opacity:0;transition:opacity .1s;z-index:999;
+  max-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.12);line-height:1.6}
+.tooltip.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>WSJ Economic Forecasting Survey &#8212; Institutional Generalist Rankings</h1>
+    <p class="subtitle">Composite forecast accuracy across all 9 economic variables, short-horizon only (1&#8211;12 months). Active July 2026 participants only.<br>
+    Scored using Average Percentile Rank across qualifying variables. Per-variable RMSE counts only if the institution meets the specialist minimum-N threshold for that variable.</p>
+  </header>
+
+  <div class="tier-tabs" id="tierTabs"></div>
+
+  <div class="card">
+    <div class="meta-bar" id="metaBar"></div>
+    <div class="tbl-wrap">
+      <table id="rankTable">
+        <thead id="tHead"></thead>
+        <tbody id="tBody"></tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span style="font-weight:700;color:var(--txt2);margin-right:4px">Pct rank:</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:var(--g4)"></span>75&#8211;100</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:var(--g3)"></span>50&#8211;74</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:var(--g2);border:1px solid #ccc"></span>25&#8211;49</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:var(--g1)"></span>0&#8211;24</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:var(--g0)"></span>Below min N</span>
+    </div>
+  </div>
+
+  <div class="findings-card">
+    <div class="findings-title">Key Findings</div>
+    <div class="findings" id="findings"></div>
+  </div>
+
+  <div class="findings-card defs">
+    <p><dt>Min Vars:</dt> <dd>The minimum number of economic variables for which an institution must have a qualifying RMSE to appear in the rankings. Qualifying requires N &#8805; the specialist minimum-N threshold for that variable. Higher min vars = stricter breadth requirement. At 9 (all variables), the generalist ranking is directly comparable to specialist results.</dd></p>
+    <p><dt>Avg Percentile Rank:</dt> <dd>Mean of per-variable percentile ranks across all qualifying variables (higher = better). Percentile rank is immune to cross-variable scale differences: a 90th-percentile CPI forecast and a 90th-percentile Payrolls forecast contribute equally, regardless of raw RMSE magnitudes.</dd></p>
+    <p><dt>Cell colors:</dt> <dd>Each variable cell shows an institution&#8217;s percentile rank within the full active pool for that variable. Grey cells indicate the institution has fewer observations than the specialist minimum-N threshold and does not qualify for that variable slot.</dd></p>
+    <p><dt>Min N:</dt> <dd>Per-variable minimum observation counts (specialist thresholds): 10Y Tsry &#8805;60 &#183; CPI YoY &#8805;128 &#183; Core PCE &#8805;19 &#183; Fed Funds &#8805;60 &#183; GDP 4Q4Q &#8805;19 &#183; GDP QoQ &#8805;196 &#183; PCE &#8805;22 &#183; Payrolls &#8805;7 &#183; Unemp &#8805;132.</dd></p>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const DATA = {"5": [{"name": "Goldman Sachs", "avg_pct": 69.5, "vars_covered": 5, "vars": {"10Y Tsry": {"rmse": 0.6978, "n": 62, "pct": 90.0, "min_n": 60}, "CPI YoY": {"rmse": null, "n": 120, "pct": null, "min_n": 128}, "Core PCE": {"rmse": 1.0857, "n": 19, "pct": 37.5, "min_n": 19}, "Fed Funds": {"rmse": 0.8302, "n": 62, "pct": 83.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.8011, "n": 19, "pct": 70.0, "min_n": 19}, "GDP QoQ": {"rmse": null, "n": 183, "pct": null, "min_n": 196}, "PCE": {"rmse": 1.2178, "n": 23, "pct": 66.7, "min_n": 22}, "Payrolls": {"rmse": null, "n": 4, "pct": null, "min_n": 7}, "Unemp": {"rmse": null, "n": 124, "pct": null, "min_n": 132}}}, {"name": "Fannie Mae", "avg_pct": 66.4, "vars_covered": 5, "vars": {"10Y Tsry": {"rmse": null, "n": 58, "pct": null, "min_n": 60}, "CPI YoY": {"rmse": 1.43, "n": 128, "pct": 90.9, "min_n": 128}, "Core PCE": {"rmse": 0.9376, "n": 19, "pct": 81.2, "min_n": 19}, "Fed Funds": {"rmse": null, "n": 58, "pct": null, "min_n": 60}, "GDP 4Q4Q": {"rmse": null, "n": 17, "pct": null, "min_n": 19}, "GDP QoQ": {"rmse": 5.4651, "n": 198, "pct": 60.0, "min_n": 196}, "PCE": {"rmse": null, "n": 20, "pct": null, "min_n": 22}, "Payrolls": {"rmse": 149570.7344, "n": 7, "pct": 18.2, "min_n": 7}, "Unemp": {"rmse": 1.2806, "n": 132, "pct": 81.8, "min_n": 132}}}, {"name": "Northern Trust", "avg_pct": 61.7, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.7204, "n": 62, "pct": 80.0, "min_n": 60}, "CPI YoY": {"rmse": 1.5823, "n": 130, "pct": 63.6, "min_n": 128}, "Core PCE": {"rmse": 1.1413, "n": 19, "pct": 31.2, "min_n": 19}, "Fed Funds": {"rmse": 0.9107, "n": 62, "pct": 75.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.8603, "n": 19, "pct": 60.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.4427, "n": 197, "pct": 70.0, "min_n": 196}, "PCE": {"rmse": 1.2511, "n": 23, "pct": 60.0, "min_n": 22}, "Payrolls": {"rmse": 123458.2464, "n": 7, "pct": 60.6, "min_n": 7}, "Unemp": {"rmse": 1.3729, "n": 134, "pct": 54.5, "min_n": 132}}}, {"name": "Deutsche Bank Securities", "avg_pct": 50.1, "vars_covered": 6, "vars": {"10Y Tsry": {"rmse": null, "n": 59, "pct": null, "min_n": 60}, "CPI YoY": {"rmse": 1.7499, "n": 128, "pct": -0.0, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 0.9656, "n": 60, "pct": 33.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "GDP QoQ": {"rmse": 5.4097, "n": 196, "pct": 80.0, "min_n": 196}, "PCE": {"rmse": 1.3354, "n": 22, "pct": 26.7, "min_n": 22}, "Payrolls": {"rmse": 89505.6584, "n": 7, "pct": 87.9, "min_n": 7}, "Unemp": {"rmse": 1.3138, "n": 132, "pct": 72.7, "min_n": 132}}}, {"name": "Bank of America Securities", "avg_pct": 46.3, "vars_covered": 5, "vars": {"10Y Tsry": {"rmse": 0.8945, "n": 60, "pct": 50.0, "min_n": 60}, "CPI YoY": {"rmse": 1.4673, "n": 129, "pct": 81.8, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 0.9516, "n": 60, "pct": 50.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "GDP QoQ": {"rmse": null, "n": 194, "pct": null, "min_n": 196}, "PCE": {"rmse": 1.3852, "n": 22, "pct": 13.3, "min_n": 22}, "Payrolls": {"rmse": null, "n": 6, "pct": null, "min_n": 7}, "Unemp": {"rmse": 1.4193, "n": 132, "pct": 36.4, "min_n": 132}}}, {"name": "Mortgage Bankers Association", "avg_pct": 45.0, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.8657, "n": 62, "pct": 60.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6097, "n": 132, "pct": 54.5, "min_n": 128}, "Core PCE": {"rmse": 1.2049, "n": 19, "pct": 25.0, "min_n": 19}, "Fed Funds": {"rmse": 0.9651, "n": 62, "pct": 41.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1796, "n": 19, "pct": 20.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.6616, "n": 203, "pct": 30.0, "min_n": 196}, "PCE": {"rmse": 1.4244, "n": 23, "pct": 6.7, "min_n": 22}, "Payrolls": {"rmse": 109059.0885, "n": 7, "pct": 75.8, "min_n": 7}, "Unemp": {"rmse": 1.2781, "n": 136, "pct": 90.9, "min_n": 132}}}, {"name": "Econoclast", "avg_pct": 44.6, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.913, "n": 62, "pct": 20.0, "min_n": 60}, "CPI YoY": {"rmse": 1.627, "n": 132, "pct": 45.5, "min_n": 128}, "Core PCE": {"rmse": 1.0066, "n": 19, "pct": 50.0, "min_n": 19}, "Fed Funds": {"rmse": 0.972, "n": 62, "pct": 25.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.2101, "n": 19, "pct": 10.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.3248, "n": 203, "pct": 90.0, "min_n": 196}, "PCE": {"rmse": 1.314, "n": 23, "pct": 33.3, "min_n": 22}, "Payrolls": {"rmse": 115415.3494, "n": 7, "pct": 63.6, "min_n": 7}, "Unemp": {"rmse": 1.3505, "n": 136, "pct": 63.6, "min_n": 132}}}, {"name": "Wells Fargo", "avg_pct": 42.1, "vars_covered": 7, "vars": {"10Y Tsry": {"rmse": 0.9056, "n": 60, "pct": 30.0, "min_n": 60}, "CPI YoY": {"rmse": 1.7436, "n": 131, "pct": 9.1, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 0.9348, "n": 60, "pct": 66.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "GDP QoQ": {"rmse": 5.59, "n": 202, "pct": 50.0, "min_n": 196}, "PCE": {"rmse": 1.1296, "n": 22, "pct": 93.3, "min_n": 22}, "Payrolls": {"rmse": 237303.1957, "n": 7, "pct": 0.0, "min_n": 7}, "Unemp": {"rmse": 1.3948, "n": 134, "pct": 45.5, "min_n": 132}}}, {"name": "Decision Economics", "avg_pct": 41.4, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.8999, "n": 62, "pct": 40.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6998, "n": 132, "pct": 27.3, "min_n": 128}, "Core PCE": {"rmse": 1.0585, "n": 19, "pct": 43.8, "min_n": 19}, "Fed Funds": {"rmse": 0.9476, "n": 62, "pct": 58.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.7006, "n": 19, "pct": 80.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.8936, "n": 203, "pct": 10.0, "min_n": 196}, "PCE": {"rmse": 1.3003, "n": 23, "pct": 46.7, "min_n": 22}, "Payrolls": {"rmse": 113670.1633, "n": 7, "pct": 66.7, "min_n": 7}, "Unemp": {"rmse": 1.5817, "n": 136, "pct": -0.0, "min_n": 132}}}, {"name": "UCLA Anderson Forecast", "avg_pct": 31.8, "vars_covered": 7, "vars": {"10Y Tsry": {"rmse": 0.7917, "n": 61, "pct": 70.0, "min_n": 60}, "CPI YoY": {"rmse": 1.5809, "n": 130, "pct": 72.7, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 0.9744, "n": 61, "pct": 16.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1366, "n": 19, "pct": 30.0, "min_n": 19}, "GDP QoQ": {"rmse": 6.0014, "n": 198, "pct": 0.0, "min_n": 196}, "PCE": {"rmse": null, "n": 20, "pct": null, "min_n": 22}, "Payrolls": {"rmse": 146048.0026, "n": 7, "pct": 24.2, "min_n": 7}, "Unemp": {"rmse": 1.4625, "n": 133, "pct": 9.1, "min_n": 132}}}, {"name": "First Trust Advisors", "avg_pct": 19.1, "vars_covered": 8, "vars": {"10Y Tsry": {"rmse": 0.9981, "n": 60, "pct": 0.0, "min_n": 60}, "CPI YoY": {"rmse": 1.7405, "n": 130, "pct": 18.2, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 1.0366, "n": 60, "pct": 8.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.6487, "n": 19, "pct": 0.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.7263, "n": 200, "pct": 20.0, "min_n": 196}, "PCE": {"rmse": 1.1947, "n": 22, "pct": 73.3, "min_n": 22}, "Payrolls": {"rmse": 158917.6682, "n": 7, "pct": 6.1, "min_n": 7}, "Unemp": {"rmse": 1.4519, "n": 134, "pct": 27.3, "min_n": 132}}}, {"name": "Economic Analysis Associates", "avg_pct": 17.1, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.965, "n": 60, "pct": 10.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6963, "n": 132, "pct": 36.4, "min_n": 128}, "Core PCE": {"rmse": 1.3892, "n": 19, "pct": 6.2, "min_n": 19}, "Fed Funds": {"rmse": 1.1811, "n": 60, "pct": 0.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1134, "n": 19, "pct": 40.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.6116, "n": 200, "pct": 40.0, "min_n": 196}, "PCE": {"rmse": 1.4276, "n": 23, "pct": 0.0, "min_n": 22}, "Payrolls": {"rmse": 169225.5267, "n": 7, "pct": 3.0, "min_n": 7}, "Unemp": {"rmse": 1.46, "n": 136, "pct": 18.2, "min_n": 132}}}], "6": [{"name": "Northern Trust", "avg_pct": 61.7, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.7204, "n": 62, "pct": 80.0, "min_n": 60}, "CPI YoY": {"rmse": 1.5823, "n": 130, "pct": 63.6, "min_n": 128}, "Core PCE": {"rmse": 1.1413, "n": 19, "pct": 31.2, "min_n": 19}, "Fed Funds": {"rmse": 0.9107, "n": 62, "pct": 75.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.8603, "n": 19, "pct": 60.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.4427, "n": 197, "pct": 70.0, "min_n": 196}, "PCE": {"rmse": 1.2511, "n": 23, "pct": 60.0, "min_n": 22}, "Payrolls": {"rmse": 123458.2464, "n": 7, "pct": 60.6, "min_n": 7}, "Unemp": {"rmse": 1.3729, "n": 134, "pct": 54.5, "min_n": 132}}}, {"name": "Deutsche Bank Securities", "avg_pct": 50.1, "vars_covered": 6, "vars": {"10Y Tsry": {"rmse": null, "n": 59, "pct": null, "min_n": 60}, "CPI YoY": {"rmse": 1.7499, "n": 128, "pct": -0.0, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 0.9656, "n": 60, "pct": 33.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "GDP QoQ": {"rmse": 5.4097, "n": 196, "pct": 80.0, "min_n": 196}, "PCE": {"rmse": 1.3354, "n": 22, "pct": 26.7, "min_n": 22}, "Payrolls": {"rmse": 89505.6584, "n": 7, "pct": 87.9, "min_n": 7}, "Unemp": {"rmse": 1.3138, "n": 132, "pct": 72.7, "min_n": 132}}}, {"name": "Mortgage Bankers Association", "avg_pct": 45.0, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.8657, "n": 62, "pct": 60.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6097, "n": 132, "pct": 54.5, "min_n": 128}, "Core PCE": {"rmse": 1.2049, "n": 19, "pct": 25.0, "min_n": 19}, "Fed Funds": {"rmse": 0.9651, "n": 62, "pct": 41.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1796, "n": 19, "pct": 20.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.6616, "n": 203, "pct": 30.0, "min_n": 196}, "PCE": {"rmse": 1.4244, "n": 23, "pct": 6.7, "min_n": 22}, "Payrolls": {"rmse": 109059.0885, "n": 7, "pct": 75.8, "min_n": 7}, "Unemp": {"rmse": 1.2781, "n": 136, "pct": 90.9, "min_n": 132}}}, {"name": "Econoclast", "avg_pct": 44.6, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.913, "n": 62, "pct": 20.0, "min_n": 60}, "CPI YoY": {"rmse": 1.627, "n": 132, "pct": 45.5, "min_n": 128}, "Core PCE": {"rmse": 1.0066, "n": 19, "pct": 50.0, "min_n": 19}, "Fed Funds": {"rmse": 0.972, "n": 62, "pct": 25.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.2101, "n": 19, "pct": 10.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.3248, "n": 203, "pct": 90.0, "min_n": 196}, "PCE": {"rmse": 1.314, "n": 23, "pct": 33.3, "min_n": 22}, "Payrolls": {"rmse": 115415.3494, "n": 7, "pct": 63.6, "min_n": 7}, "Unemp": {"rmse": 1.3505, "n": 136, "pct": 63.6, "min_n": 132}}}, {"name": "Wells Fargo", "avg_pct": 42.1, "vars_covered": 7, "vars": {"10Y Tsry": {"rmse": 0.9056, "n": 60, "pct": 30.0, "min_n": 60}, "CPI YoY": {"rmse": 1.7436, "n": 131, "pct": 9.1, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 0.9348, "n": 60, "pct": 66.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "GDP QoQ": {"rmse": 5.59, "n": 202, "pct": 50.0, "min_n": 196}, "PCE": {"rmse": 1.1296, "n": 22, "pct": 93.3, "min_n": 22}, "Payrolls": {"rmse": 237303.1957, "n": 7, "pct": 0.0, "min_n": 7}, "Unemp": {"rmse": 1.3948, "n": 134, "pct": 45.5, "min_n": 132}}}, {"name": "Decision Economics", "avg_pct": 41.4, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.8999, "n": 62, "pct": 40.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6998, "n": 132, "pct": 27.3, "min_n": 128}, "Core PCE": {"rmse": 1.0585, "n": 19, "pct": 43.8, "min_n": 19}, "Fed Funds": {"rmse": 0.9476, "n": 62, "pct": 58.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.7006, "n": 19, "pct": 80.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.8936, "n": 203, "pct": 10.0, "min_n": 196}, "PCE": {"rmse": 1.3003, "n": 23, "pct": 46.7, "min_n": 22}, "Payrolls": {"rmse": 113670.1633, "n": 7, "pct": 66.7, "min_n": 7}, "Unemp": {"rmse": 1.5817, "n": 136, "pct": -0.0, "min_n": 132}}}, {"name": "UCLA Anderson Forecast", "avg_pct": 31.8, "vars_covered": 7, "vars": {"10Y Tsry": {"rmse": 0.7917, "n": 61, "pct": 70.0, "min_n": 60}, "CPI YoY": {"rmse": 1.5809, "n": 130, "pct": 72.7, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 0.9744, "n": 61, "pct": 16.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1366, "n": 19, "pct": 30.0, "min_n": 19}, "GDP QoQ": {"rmse": 6.0014, "n": 198, "pct": 0.0, "min_n": 196}, "PCE": {"rmse": null, "n": 20, "pct": null, "min_n": 22}, "Payrolls": {"rmse": 146048.0026, "n": 7, "pct": 24.2, "min_n": 7}, "Unemp": {"rmse": 1.4625, "n": 133, "pct": 9.1, "min_n": 132}}}, {"name": "First Trust Advisors", "avg_pct": 19.1, "vars_covered": 8, "vars": {"10Y Tsry": {"rmse": 0.9981, "n": 60, "pct": 0.0, "min_n": 60}, "CPI YoY": {"rmse": 1.7405, "n": 130, "pct": 18.2, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 1.0366, "n": 60, "pct": 8.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.6487, "n": 19, "pct": 0.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.7263, "n": 200, "pct": 20.0, "min_n": 196}, "PCE": {"rmse": 1.1947, "n": 22, "pct": 73.3, "min_n": 22}, "Payrolls": {"rmse": 158917.6682, "n": 7, "pct": 6.1, "min_n": 7}, "Unemp": {"rmse": 1.4519, "n": 134, "pct": 27.3, "min_n": 132}}}, {"name": "Economic Analysis Associates", "avg_pct": 17.1, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.965, "n": 60, "pct": 10.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6963, "n": 132, "pct": 36.4, "min_n": 128}, "Core PCE": {"rmse": 1.3892, "n": 19, "pct": 6.2, "min_n": 19}, "Fed Funds": {"rmse": 1.1811, "n": 60, "pct": 0.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1134, "n": 19, "pct": 40.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.6116, "n": 200, "pct": 40.0, "min_n": 196}, "PCE": {"rmse": 1.4276, "n": 23, "pct": 0.0, "min_n": 22}, "Payrolls": {"rmse": 169225.5267, "n": 7, "pct": 3.0, "min_n": 7}, "Unemp": {"rmse": 1.46, "n": 136, "pct": 18.2, "min_n": 132}}}], "7": [{"name": "Northern Trust", "avg_pct": 61.7, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.7204, "n": 62, "pct": 80.0, "min_n": 60}, "CPI YoY": {"rmse": 1.5823, "n": 130, "pct": 63.6, "min_n": 128}, "Core PCE": {"rmse": 1.1413, "n": 19, "pct": 31.2, "min_n": 19}, "Fed Funds": {"rmse": 0.9107, "n": 62, "pct": 75.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.8603, "n": 19, "pct": 60.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.4427, "n": 197, "pct": 70.0, "min_n": 196}, "PCE": {"rmse": 1.2511, "n": 23, "pct": 60.0, "min_n": 22}, "Payrolls": {"rmse": 123458.2464, "n": 7, "pct": 60.6, "min_n": 7}, "Unemp": {"rmse": 1.3729, "n": 134, "pct": 54.5, "min_n": 132}}}, {"name": "Mortgage Bankers Association", "avg_pct": 45.0, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.8657, "n": 62, "pct": 60.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6097, "n": 132, "pct": 54.5, "min_n": 128}, "Core PCE": {"rmse": 1.2049, "n": 19, "pct": 25.0, "min_n": 19}, "Fed Funds": {"rmse": 0.9651, "n": 62, "pct": 41.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1796, "n": 19, "pct": 20.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.6616, "n": 203, "pct": 30.0, "min_n": 196}, "PCE": {"rmse": 1.4244, "n": 23, "pct": 6.7, "min_n": 22}, "Payrolls": {"rmse": 109059.0885, "n": 7, "pct": 75.8, "min_n": 7}, "Unemp": {"rmse": 1.2781, "n": 136, "pct": 90.9, "min_n": 132}}}, {"name": "Econoclast", "avg_pct": 44.6, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.913, "n": 62, "pct": 20.0, "min_n": 60}, "CPI YoY": {"rmse": 1.627, "n": 132, "pct": 45.5, "min_n": 128}, "Core PCE": {"rmse": 1.0066, "n": 19, "pct": 50.0, "min_n": 19}, "Fed Funds": {"rmse": 0.972, "n": 62, "pct": 25.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.2101, "n": 19, "pct": 10.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.3248, "n": 203, "pct": 90.0, "min_n": 196}, "PCE": {"rmse": 1.314, "n": 23, "pct": 33.3, "min_n": 22}, "Payrolls": {"rmse": 115415.3494, "n": 7, "pct": 63.6, "min_n": 7}, "Unemp": {"rmse": 1.3505, "n": 136, "pct": 63.6, "min_n": 132}}}, {"name": "Wells Fargo", "avg_pct": 42.1, "vars_covered": 7, "vars": {"10Y Tsry": {"rmse": 0.9056, "n": 60, "pct": 30.0, "min_n": 60}, "CPI YoY": {"rmse": 1.7436, "n": 131, "pct": 9.1, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 0.9348, "n": 60, "pct": 66.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "GDP QoQ": {"rmse": 5.59, "n": 202, "pct": 50.0, "min_n": 196}, "PCE": {"rmse": 1.1296, "n": 22, "pct": 93.3, "min_n": 22}, "Payrolls": {"rmse": 237303.1957, "n": 7, "pct": 0.0, "min_n": 7}, "Unemp": {"rmse": 1.3948, "n": 134, "pct": 45.5, "min_n": 132}}}, {"name": "Decision Economics", "avg_pct": 41.4, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.8999, "n": 62, "pct": 40.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6998, "n": 132, "pct": 27.3, "min_n": 128}, "Core PCE": {"rmse": 1.0585, "n": 19, "pct": 43.8, "min_n": 19}, "Fed Funds": {"rmse": 0.9476, "n": 62, "pct": 58.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.7006, "n": 19, "pct": 80.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.8936, "n": 203, "pct": 10.0, "min_n": 196}, "PCE": {"rmse": 1.3003, "n": 23, "pct": 46.7, "min_n": 22}, "Payrolls": {"rmse": 113670.1633, "n": 7, "pct": 66.7, "min_n": 7}, "Unemp": {"rmse": 1.5817, "n": 136, "pct": -0.0, "min_n": 132}}}, {"name": "UCLA Anderson Forecast", "avg_pct": 31.8, "vars_covered": 7, "vars": {"10Y Tsry": {"rmse": 0.7917, "n": 61, "pct": 70.0, "min_n": 60}, "CPI YoY": {"rmse": 1.5809, "n": 130, "pct": 72.7, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 0.9744, "n": 61, "pct": 16.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1366, "n": 19, "pct": 30.0, "min_n": 19}, "GDP QoQ": {"rmse": 6.0014, "n": 198, "pct": 0.0, "min_n": 196}, "PCE": {"rmse": null, "n": 20, "pct": null, "min_n": 22}, "Payrolls": {"rmse": 146048.0026, "n": 7, "pct": 24.2, "min_n": 7}, "Unemp": {"rmse": 1.4625, "n": 133, "pct": 9.1, "min_n": 132}}}, {"name": "First Trust Advisors", "avg_pct": 19.1, "vars_covered": 8, "vars": {"10Y Tsry": {"rmse": 0.9981, "n": 60, "pct": 0.0, "min_n": 60}, "CPI YoY": {"rmse": 1.7405, "n": 130, "pct": 18.2, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 1.0366, "n": 60, "pct": 8.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.6487, "n": 19, "pct": 0.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.7263, "n": 200, "pct": 20.0, "min_n": 196}, "PCE": {"rmse": 1.1947, "n": 22, "pct": 73.3, "min_n": 22}, "Payrolls": {"rmse": 158917.6682, "n": 7, "pct": 6.1, "min_n": 7}, "Unemp": {"rmse": 1.4519, "n": 134, "pct": 27.3, "min_n": 132}}}, {"name": "Economic Analysis Associates", "avg_pct": 17.1, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.965, "n": 60, "pct": 10.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6963, "n": 132, "pct": 36.4, "min_n": 128}, "Core PCE": {"rmse": 1.3892, "n": 19, "pct": 6.2, "min_n": 19}, "Fed Funds": {"rmse": 1.1811, "n": 60, "pct": 0.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1134, "n": 19, "pct": 40.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.6116, "n": 200, "pct": 40.0, "min_n": 196}, "PCE": {"rmse": 1.4276, "n": 23, "pct": 0.0, "min_n": 22}, "Payrolls": {"rmse": 169225.5267, "n": 7, "pct": 3.0, "min_n": 7}, "Unemp": {"rmse": 1.46, "n": 136, "pct": 18.2, "min_n": 132}}}], "8": [{"name": "Northern Trust", "avg_pct": 61.7, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.7204, "n": 62, "pct": 80.0, "min_n": 60}, "CPI YoY": {"rmse": 1.5823, "n": 130, "pct": 63.6, "min_n": 128}, "Core PCE": {"rmse": 1.1413, "n": 19, "pct": 31.2, "min_n": 19}, "Fed Funds": {"rmse": 0.9107, "n": 62, "pct": 75.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.8603, "n": 19, "pct": 60.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.4427, "n": 197, "pct": 70.0, "min_n": 196}, "PCE": {"rmse": 1.2511, "n": 23, "pct": 60.0, "min_n": 22}, "Payrolls": {"rmse": 123458.2464, "n": 7, "pct": 60.6, "min_n": 7}, "Unemp": {"rmse": 1.3729, "n": 134, "pct": 54.5, "min_n": 132}}}, {"name": "Mortgage Bankers Association", "avg_pct": 45.0, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.8657, "n": 62, "pct": 60.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6097, "n": 132, "pct": 54.5, "min_n": 128}, "Core PCE": {"rmse": 1.2049, "n": 19, "pct": 25.0, "min_n": 19}, "Fed Funds": {"rmse": 0.9651, "n": 62, "pct": 41.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1796, "n": 19, "pct": 20.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.6616, "n": 203, "pct": 30.0, "min_n": 196}, "PCE": {"rmse": 1.4244, "n": 23, "pct": 6.7, "min_n": 22}, "Payrolls": {"rmse": 109059.0885, "n": 7, "pct": 75.8, "min_n": 7}, "Unemp": {"rmse": 1.2781, "n": 136, "pct": 90.9, "min_n": 132}}}, {"name": "Econoclast", "avg_pct": 44.6, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.913, "n": 62, "pct": 20.0, "min_n": 60}, "CPI YoY": {"rmse": 1.627, "n": 132, "pct": 45.5, "min_n": 128}, "Core PCE": {"rmse": 1.0066, "n": 19, "pct": 50.0, "min_n": 19}, "Fed Funds": {"rmse": 0.972, "n": 62, "pct": 25.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.2101, "n": 19, "pct": 10.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.3248, "n": 203, "pct": 90.0, "min_n": 196}, "PCE": {"rmse": 1.314, "n": 23, "pct": 33.3, "min_n": 22}, "Payrolls": {"rmse": 115415.3494, "n": 7, "pct": 63.6, "min_n": 7}, "Unemp": {"rmse": 1.3505, "n": 136, "pct": 63.6, "min_n": 132}}}, {"name": "Decision Economics", "avg_pct": 41.4, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.8999, "n": 62, "pct": 40.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6998, "n": 132, "pct": 27.3, "min_n": 128}, "Core PCE": {"rmse": 1.0585, "n": 19, "pct": 43.8, "min_n": 19}, "Fed Funds": {"rmse": 0.9476, "n": 62, "pct": 58.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.7006, "n": 19, "pct": 80.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.8936, "n": 203, "pct": 10.0, "min_n": 196}, "PCE": {"rmse": 1.3003, "n": 23, "pct": 46.7, "min_n": 22}, "Payrolls": {"rmse": 113670.1633, "n": 7, "pct": 66.7, "min_n": 7}, "Unemp": {"rmse": 1.5817, "n": 136, "pct": -0.0, "min_n": 132}}}, {"name": "First Trust Advisors", "avg_pct": 19.1, "vars_covered": 8, "vars": {"10Y Tsry": {"rmse": 0.9981, "n": 60, "pct": 0.0, "min_n": 60}, "CPI YoY": {"rmse": 1.7405, "n": 130, "pct": 18.2, "min_n": 128}, "Core PCE": {"rmse": null, "n": 18, "pct": null, "min_n": 19}, "Fed Funds": {"rmse": 1.0366, "n": 60, "pct": 8.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.6487, "n": 19, "pct": 0.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.7263, "n": 200, "pct": 20.0, "min_n": 196}, "PCE": {"rmse": 1.1947, "n": 22, "pct": 73.3, "min_n": 22}, "Payrolls": {"rmse": 158917.6682, "n": 7, "pct": 6.1, "min_n": 7}, "Unemp": {"rmse": 1.4519, "n": 134, "pct": 27.3, "min_n": 132}}}, {"name": "Economic Analysis Associates", "avg_pct": 17.1, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.965, "n": 60, "pct": 10.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6963, "n": 132, "pct": 36.4, "min_n": 128}, "Core PCE": {"rmse": 1.3892, "n": 19, "pct": 6.2, "min_n": 19}, "Fed Funds": {"rmse": 1.1811, "n": 60, "pct": 0.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1134, "n": 19, "pct": 40.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.6116, "n": 200, "pct": 40.0, "min_n": 196}, "PCE": {"rmse": 1.4276, "n": 23, "pct": 0.0, "min_n": 22}, "Payrolls": {"rmse": 169225.5267, "n": 7, "pct": 3.0, "min_n": 7}, "Unemp": {"rmse": 1.46, "n": 136, "pct": 18.2, "min_n": 132}}}], "9": [{"name": "Northern Trust", "avg_pct": 61.7, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.7204, "n": 62, "pct": 80.0, "min_n": 60}, "CPI YoY": {"rmse": 1.5823, "n": 130, "pct": 63.6, "min_n": 128}, "Core PCE": {"rmse": 1.1413, "n": 19, "pct": 31.2, "min_n": 19}, "Fed Funds": {"rmse": 0.9107, "n": 62, "pct": 75.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.8603, "n": 19, "pct": 60.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.4427, "n": 197, "pct": 70.0, "min_n": 196}, "PCE": {"rmse": 1.2511, "n": 23, "pct": 60.0, "min_n": 22}, "Payrolls": {"rmse": 123458.2464, "n": 7, "pct": 60.6, "min_n": 7}, "Unemp": {"rmse": 1.3729, "n": 134, "pct": 54.5, "min_n": 132}}}, {"name": "Mortgage Bankers Association", "avg_pct": 45.0, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.8657, "n": 62, "pct": 60.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6097, "n": 132, "pct": 54.5, "min_n": 128}, "Core PCE": {"rmse": 1.2049, "n": 19, "pct": 25.0, "min_n": 19}, "Fed Funds": {"rmse": 0.9651, "n": 62, "pct": 41.7, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1796, "n": 19, "pct": 20.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.6616, "n": 203, "pct": 30.0, "min_n": 196}, "PCE": {"rmse": 1.4244, "n": 23, "pct": 6.7, "min_n": 22}, "Payrolls": {"rmse": 109059.0885, "n": 7, "pct": 75.8, "min_n": 7}, "Unemp": {"rmse": 1.2781, "n": 136, "pct": 90.9, "min_n": 132}}}, {"name": "Econoclast", "avg_pct": 44.6, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.913, "n": 62, "pct": 20.0, "min_n": 60}, "CPI YoY": {"rmse": 1.627, "n": 132, "pct": 45.5, "min_n": 128}, "Core PCE": {"rmse": 1.0066, "n": 19, "pct": 50.0, "min_n": 19}, "Fed Funds": {"rmse": 0.972, "n": 62, "pct": 25.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.2101, "n": 19, "pct": 10.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.3248, "n": 203, "pct": 90.0, "min_n": 196}, "PCE": {"rmse": 1.314, "n": 23, "pct": 33.3, "min_n": 22}, "Payrolls": {"rmse": 115415.3494, "n": 7, "pct": 63.6, "min_n": 7}, "Unemp": {"rmse": 1.3505, "n": 136, "pct": 63.6, "min_n": 132}}}, {"name": "Decision Economics", "avg_pct": 41.4, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.8999, "n": 62, "pct": 40.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6998, "n": 132, "pct": 27.3, "min_n": 128}, "Core PCE": {"rmse": 1.0585, "n": 19, "pct": 43.8, "min_n": 19}, "Fed Funds": {"rmse": 0.9476, "n": 62, "pct": 58.3, "min_n": 60}, "GDP 4Q4Q": {"rmse": 1.7006, "n": 19, "pct": 80.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.8936, "n": 203, "pct": 10.0, "min_n": 196}, "PCE": {"rmse": 1.3003, "n": 23, "pct": 46.7, "min_n": 22}, "Payrolls": {"rmse": 113670.1633, "n": 7, "pct": 66.7, "min_n": 7}, "Unemp": {"rmse": 1.5817, "n": 136, "pct": -0.0, "min_n": 132}}}, {"name": "Economic Analysis Associates", "avg_pct": 17.1, "vars_covered": 9, "vars": {"10Y Tsry": {"rmse": 0.965, "n": 60, "pct": 10.0, "min_n": 60}, "CPI YoY": {"rmse": 1.6963, "n": 132, "pct": 36.4, "min_n": 128}, "Core PCE": {"rmse": 1.3892, "n": 19, "pct": 6.2, "min_n": 19}, "Fed Funds": {"rmse": 1.1811, "n": 60, "pct": 0.0, "min_n": 60}, "GDP 4Q4Q": {"rmse": 2.1134, "n": 19, "pct": 40.0, "min_n": 19}, "GDP QoQ": {"rmse": 5.6116, "n": 200, "pct": 40.0, "min_n": 196}, "PCE": {"rmse": 1.4276, "n": 23, "pct": 0.0, "min_n": 22}, "Payrolls": {"rmse": 169225.5267, "n": 7, "pct": 3.0, "min_n": 7}, "Unemp": {"rmse": 1.46, "n": 136, "pct": 18.2, "min_n": 132}}}]};
+
+const VARS = ["10Y Tsry","CPI YoY","Core PCE","Fed Funds","GDP 4Q4Q","GDP QoQ","PCE","Payrolls","Unemp"];
+
+const FINDINGS = {
+  "5": [
+    "<b>Broadest pool (12 institutions, ≥5 qualifying variables):</b> Goldman Sachs leads at 69.5 avg percentile rank, followed by Fannie Mae (66.4) — both specialist top performers appearing here only because the min-vars threshold is relaxed to 5.",
+    "<b>Specialist-generalist divergence:</b> Goldman Sachs holds 2 specialist #1 finishes and ranks #1 here at ≥5, yet qualifies for only 5 of 9 variables. Its high score reflects exceptional accuracy in the variables it does cover, not broad consistency.",
+    "Northern Trust (61.7) is the highest-ranked institution with full 9-variable coverage, placing 3rd at this threshold — its breadth advantage becomes decisive at stricter tiers.",
+    "Of the 12 qualifying institutions, 4 have coverage of exactly 5 variables, meaning their scores rest on a bare majority of the variable set. Rankings at this tier should be interpreted with that caveat."
+  ],
+  "6": [
+    "<b>At ≥6 variables (9 institutions):</b> Northern Trust moves to #1 (61.7), as Goldman Sachs and Fannie Mae no longer qualify. Deutsche Bank Securities enters the board at #2 with 50.1, despite holding only 1 specialist #1 finish (Unemployment Long).",
+    "<b>Decision Economics contrast:</b> The dominant specialist institution (5 #1 finishes) ranks 6th here at 41.4. Its specialist strength lies at intermediate and long-term horizons; the generalist RMSE blends all forecast horizons equally, pulling that longer-term edge down by mixing in weaker near-term performance.",
+    "Mortgage Bankers Association (45.0) and Econoclast (44.6) cluster closely — both have 9-variable coverage and broadly median accuracy, with no single standout variable.",
+    "Economic Analysis Associates qualifies for all 9 variables but ranks last (17.1) — consistent longevity without commensurate accuracy."
+  ],
+  "7": [
+    "<b>At ≥7 variables (8 institutions):</b> Deutsche Bank Securities drops out, leaving a tighter 8-institution pool. The top 3 — Northern Trust, Mortgage Bankers Association, Econoclast — are unchanged and all carry 9-variable coverage.",
+    "Wells Fargo (42.1) qualifies here with 7 variables. Its profile is notably uneven: a top-quartile score in PCE (93.3 pct) and Fed Funds (66.7) but last place in Payrolls (0.0), driven by a large Payrolls RMSE of 237k jobs.",
+    "The 8 qualifying institutions span a 44-point range in avg percentile rank (17.1 to 61.7) — wider dispersion than the specialist top 10 at any single variable-horizon, reflecting genuinely different levels of broad-market forecasting skill."
+  ],
+  "8": [
+    "<b>At ≥8 variables (6 institutions):</b> Wells Fargo and UCLA Anderson drop out. Northern Trust leads (61.7), with Mortgage Bankers Association (45.0) and Econoclast (44.6) a clear tier below.",
+    "First Trust Advisors (19.1) qualifies with 8 variables but ranks 5th of 6 — the weakest performer among broadly-covered institutions, with below-median scores in 7 of its 8 qualifying variables.",
+    "Decision Economics (41.4) sits in the middle of the 6-institution field despite its specialist dominance, confirming that specialist excellence and generalist consistency are distinct dimensions of forecasting skill."
+  ],
+  "9": [
+    "<b>Full generalist (all 9 variables, directly comparable to specialist):</b> Only 5 institutions qualify. Northern Trust leads at 61.7 avg percentile rank, with no other institution above 45.",
+    "<b>Northern Trust’s profile:</b> Consistent across all 9 variables — no slot below 31st percentile, no slot above 80th. Its lead reflects steady competence rather than dominance in any single area.",
+    "<b>Decision Economics (41.4) ranks 4th of 5</b> despite holding 5 specialist #1 finishes. Its strength lies at intermediate and long-term horizons — but the generalist RMSE blends all forecast horizons into a single per-variable error, pulling that edge down by averaging in weaker near-term performance.",
+    "Economic Analysis Associates (17.1) ranks last despite 9-variable longevity — below the 20th percentile in 5 of 9 variables, suggesting systematic underperformance rather than a missing-data artifact."
+  ]
+};
+
+let curTier = 6;
+const tooltip = document.getElementById('tooltip');
+
+function pctClass(pct) {
+  if (pct === null) return 'g0';
+  if (pct >= 75) return 'g4';
+  if (pct >= 50) return 'g3';
+  if (pct >= 25) return 'g2';
+  return 'g1';
+}
+
+function fmtRmse(v, varName) {
+  if (v === null) return '—';
+  if (varName === 'Payrolls') return (v/1000).toFixed(1) + 'k';
+  return v.toFixed(3);
+}
+
+function render() {
+  const rows = DATA[String(curTier)];
+
+  // Meta bar
+  document.getElementById('metaBar').innerHTML =
+    `<strong>${rows.length} institutions</strong> qualify &nbsp;·&nbsp; ` +
+    `<strong>Min ${curTier} of 9 variables</strong> with N ≥ specialist threshold &nbsp;·&nbsp; ` +
+    (curTier === 9 ? '<strong>Directly comparable to specialist rankings</strong>' :
+     `${curTier === 5 ? 'Most inclusive threshold' : 'Requires majority variable coverage'}`);
+
+  // Table head
+  document.getElementById('tHead').innerHTML = `<tr>
+    <th class="left" style="width:28px">#</th>
+    <th class="left">Institution</th>
+    <th style="width:32px">Vars</th>
+    <th style="width:46px">Avg Pct</th>
+    <th style="width:130px">Percentile rank</th>
+    ${VARS.map(v => `<th><span class="var-hdr">${v}</span></th>`).join('')}
+  </tr>`;
+
+  // Table body
+  const tbody = document.getElementById('tBody');
+  tbody.innerHTML = '';
+  rows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    const varCells = VARS.map(v => {
+      const d = row.vars[v];
+      const qualifying = d.rmse !== null;
+      const cls = qualifying ? pctClass(d.pct) : 'g0';
+      const label = qualifying ? d.pct.toFixed(1) : (d.n > 0 ? `N=${d.n}` : '—');
+      const isMiss = !qualifying;
+      return `<td class="var-cell">
+        <span class="vcell ${cls} ${isMiss ? 'miss' : ''}"
+          data-var="${v}" data-inst="${row.name}"
+          data-rmse="${d.rmse}" data-n="${d.n}" data-pct="${d.pct}" data-minn="${d.min_n}"
+        >${label}</span>
+      </td>`;
+    }).join('');
+
+    tr.innerHTML = `
+      <td class="rank">${i+1}</td>
+      <td class="name">${row.name}</td>
+      <td class="vc">${row.vars_covered}/9</td>
+      <td class="score">${row.avg_pct.toFixed(1)}</td>
+      <td class="bar-cell">
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${row.avg_pct}%"></div>
+        </div>
+      </td>
+      ${varCells}
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Findings
+  const f = FINDINGS[String(curTier)];
+  document.getElementById('findings').innerHTML =
+    `<ul>${f.map(s => `<li>${s}</li>`).join('')}</ul>`;
+
+  // Tooltip listeners
+  tbody.querySelectorAll('.vcell').forEach(el => {
+    el.addEventListener('mouseenter', e => {
+      const v = el.dataset.var;
+      const rmse = el.dataset.rmse === 'null' ? null : parseFloat(el.dataset.rmse);
+      const n = parseInt(el.dataset.n);
+      const pct = el.dataset.pct === 'null' ? null : parseFloat(el.dataset.pct);
+      const minn = parseInt(el.dataset.minn);
+      const inst = el.dataset.inst;
+      let html = `<strong>${inst}</strong><br><em>${v}</em><br>`;
+      if (rmse !== null) {
+        html += `RMSE: ${fmtRmse(rmse, v)}<br>Pct rank: ${pct.toFixed(1)}<br>N: ${n}`;
+      } else {
+        html += `<span style="color:var(--txt3)">Below min N threshold<br>N = ${n} (need ≥${minn})</span>`;
+      }
+      tooltip.innerHTML = html;
+      tooltip.classList.add('show');
+    });
+    el.addEventListener('mousemove', e => {
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top  = (e.clientY - 10) + 'px';
+    });
+    el.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+  });
+}
+
+// Build tier tabs
+const tabsEl = document.getElementById('tierTabs');
+[5,6,7,8,9].forEach(mv => {
+  const btn = document.createElement('button');
+  btn.className = 'ttab' + (mv === curTier ? ' active' : '');
+  btn.textContent = `≥${mv} vars` + (mv === 9 ? ' (full)' : '');
+  btn.onclick = () => {
+    curTier = mv;
+    document.querySelectorAll('.ttab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  };
+  tabsEl.appendChild(btn);
+});
+
+render();
+</script>
+</body>
+</html>
